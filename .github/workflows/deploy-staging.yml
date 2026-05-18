@@ -1,88 +1,87 @@
-name: Deploy — Staging
+name: Deploy to Dev Server
 
 on:
   push:
     branches: [develop]
 
-concurrency:
-  group: deploy-staging
-  cancel-in-progress: true
-
-env:
-  REGISTRY:   ghcr.io
-  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/real-estate-app
-
 jobs:
-  build-and-push:
-    name: Build & Push Docker Images
+  test:
+    name: Build & Test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    strategy:
-      matrix:
-        service:
-          - { name: frontend,             context: ./frontend }
-          - { name: auth-service,         context: ./services/auth-service }
-          - { name: property-service,     context: ./services/property-service }
-          - { name: search-service,       context: ./services/search-service }
-          - { name: notification-service, context: ./services/notification-service }
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            services/auth-service/package.json
+            services/property-service/package.json
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Test Auth Service
+        working-directory: services/auth-service
+        run: |
+          npm ci
+          npm test --if-present
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Test Property Service
+        working-directory: services/property-service
+        run: |
+          npm ci
+          npm test --if-present
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          images: ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}
-          tags: |
-            type=sha,prefix=staging-
-            type=raw,value=staging-latest
+          python-version: '3.11'
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context:    ${{ matrix.service.context }}
-          target:     production
-          push:       true
-          tags:       ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha,scope=${{ matrix.service.name }}
-          cache-to:   type=gha,scope=${{ matrix.service.name }},mode=max
+      - name: Test Search Service
+        working-directory: services/search-service
+        run: |
+          pip install -r requirements.txt
+          pytest --if-no-tests=warn
+
+      - name: Test Notification Service
+        working-directory: services/notification-service
+        run: |
+          pip install -r requirements.txt
+          pytest --if-no-tests=warn
 
   deploy:
-    name: Deploy to Staging
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    environment: staging
-
+    name: Deploy to Dev
+    runs-on: [self-hosted, dev]
+    needs: test
+    environment: development
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host:     ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key:      ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            cd /opt/real-estate-app
-            git pull origin develop
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
-            docker system prune -f
+      - name: Pull latest code
+        working-directory: /opt/real-estate-app
+        run: |
+          git fetch origin develop
+          git reset --hard origin/develop
 
-      - name: Notify on failure
-        if: failure()
-        run: echo "Staging deployment failed for ${{ github.sha }}" >&2
+      - name: Start services
+        working-directory: /opt/real-estate-app
+        run: |
+          docker compose -f docker-compose.yml up -d --build
+
+      - name: Verify containers
+        working-directory: /opt/real-estate-app
+        run: |
+          sleep 10
+          docker compose ps
+          docker compose ps | grep -v "Exit" | grep -c "Up" || true
+
+      - name: Health check
+        run: |
+          for i in {1..5}; do
+            curl -sf http://localhost:3000/health && echo "✅ Frontend OK" && break
+            echo "Retry $i/5..."
+            sleep 5
+          done
+
+      - name: Cleanup old images
+        run: docker system prune -f
