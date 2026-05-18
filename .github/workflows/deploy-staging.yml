@@ -6,38 +6,41 @@ on:
 
 env:
   PROXY: http://10.10.5.30:10809
+  NO_PROXY: localhost,127.0.0.1,10.10.0.0/16
 
 jobs:
   deploy:
     name: Deploy to Dev
     runs-on: [self-hosted, dev]
     environment: development
+    env:
+      http_proxy: http://10.10.5.30:10809
+      https_proxy: http://10.10.5.30:10809
+      HTTP_PROXY: http://10.10.5.30:10809
+      HTTPS_PROXY: http://10.10.5.30:10809
+      no_proxy: localhost,127.0.0.1,10.10.0.0/16
     steps:
       - uses: actions/checkout@v4
 
       - name: Pull latest code
         working-directory: /opt/real-estate-app
         run: |
-          git fetch origin develop
+          git -c http.proxy=$HTTP_PROXY fetch origin develop
           git reset --hard origin/develop
 
-      - name: Build & start services
+      - name: Build services with proxy
         working-directory: /opt/real-estate-app
-        env:
-          DOCKER_BUILDKIT: 1
-          http_proxy: ${{ env.PROXY }}
-          https_proxy: ${{ env.PROXY }}
-          HTTP_PROXY: ${{ env.PROXY }}
-          HTTPS_PROXY: ${{ env.PROXY }}
-          no_proxy: localhost,127.0.0.1,10.10.0.0/16
         run: |
           docker compose -f docker-compose.yml build \
-            --build-arg http_proxy=${{ env.PROXY }} \
-            --build-arg https_proxy=${{ env.PROXY }} \
-            --build-arg HTTP_PROXY=${{ env.PROXY }} \
-            --build-arg HTTPS_PROXY=${{ env.PROXY }} \
-            --build-arg no_proxy=localhost,127.0.0.1,10.10.0.0/16
-          docker compose -f docker-compose.yml up -d
+            --build-arg http_proxy=$HTTP_PROXY \
+            --build-arg https_proxy=$HTTPS_PROXY \
+            --build-arg HTTP_PROXY=$HTTP_PROXY \
+            --build-arg HTTPS_PROXY=$HTTPS_PROXY \
+            --build-arg no_proxy=$no_proxy
+
+      - name: Start services
+        working-directory: /opt/real-estate-app
+        run: docker compose -f docker-compose.yml up -d
 
       - name: Verify containers
         working-directory: /opt/real-estate-app
