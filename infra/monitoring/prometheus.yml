@@ -1,0 +1,63 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    env: development
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+scrape_configs:
+  # ─── Prometheus Self-Monitoring ─────────────────────────────────────────────
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ─── NGINX ──────────────────────────────────────────────────────────────────
+  - job_name: nginx
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: /health
+
+  # ─── Auth Service ───────────────────────────────────────────────────────────
+  - job_name: auth-service
+    static_configs:
+      - targets: ['auth-service:4001']
+    metrics_path: /metrics
+
+  # ─── Property Service ────────────────────────────────────────────────────────
+  - job_name: property-service
+    static_configs:
+      - targets: ['property-service:4002']
+    metrics_path: /metrics
+
+  # ─── Search Service ──────────────────────────────────────────────────────────
+  - job_name: search-service
+    static_configs:
+      - targets: ['search-service:4003']
+    metrics_path: /metrics
+
+  # ─── Notification Service ────────────────────────────────────────────────────
+  - job_name: notification-service
+    static_configs:
+      - targets: ['notification-service:4004']
+    metrics_path: /metrics
+
+  # ─── PostgreSQL (postgres_exporter) ──────────────────────────────────────────
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # ─── Redis (redis_exporter) ──────────────────────────────────────────────────
+  - job_name: redis
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # ─── RabbitMQ ────────────────────────────────────────────────────────────────
+  - job_name: rabbitmq
+    static_configs:
+      - targets: ['rabbitmq:15692']
+    metrics_path: /metrics

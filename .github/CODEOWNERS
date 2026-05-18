@@ -1,0 +1,11 @@
+# Global code owners
+* @naderdelyani
+
+# Frontend
+/frontend/ @naderdelyani
+
+# Services
+/services/ @naderdelyani
+
+# Infrastructure
+/infra/ @naderdelyani

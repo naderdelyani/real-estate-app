@@ -1,0 +1,135 @@
+// Prisma schema for the Real Estate platform
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  user
+  agent
+  admin
+}
+
+enum PropertyType {
+  sale
+  rent
+}
+
+enum PropertyStatus {
+  available
+  sold
+  rented
+  deleted
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role      @default(user)
+  phone         String?
+  avatar        String?
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt       @map("updated_at")
+
+  properties    Property[]    @relation("AgentProperties")
+  favorites     Favorite[]
+  appointments  Appointment[]
+
+  @@map("users")
+}
+
+model Property {
+  id          String          @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  type        PropertyType
+  status      PropertyStatus  @default(available)
+  bedrooms    Int
+  bathrooms   Int
+  area        Float
+  address     String
+  city        String
+  lat         Float
+  lng         Float
+  viewCount   Int             @default(0) @map("view_count")
+  agentId     String          @map("agent_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt       @map("updated_at")
+
+  agent        User          @relation("AgentProperties", fields: [agentId], references: [id])
+  images       Image[]
+  favorites    Favorite[]
+  appointments Appointment[]
+
+  @@index([city])
+  @@index([type])
+  @@index([status])
+  @@index([price])
+  @@index([agentId])
+  @@map("properties")
+}
+
+model Image {
+  id         String   @id @default(uuid())
+  url        String
+  alt        String?
+  propertyId String   @map("property_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("images")
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  userId      String            @map("user_id")
+  propertyId  String            @map("property_id")
+  scheduledAt DateTime          @map("scheduled_at")
+  notes       String?
+  status      AppointmentStatus @default(pending)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt       @map("updated_at")
+
+  user     User     @relation(fields: [userId],     references: [id])
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([scheduledAt])
+  @@map("appointments")
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  propertyId String   @map("property_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId],     references: [id])
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@map("favorites")
+}
