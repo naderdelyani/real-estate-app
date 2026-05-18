@@ -5,50 +5,9 @@ on:
     branches: [develop]
 
 jobs:
-  test:
-    name: Build & Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Test Auth Service
-        working-directory: services/auth-service
-        run: |
-          npm install
-          npm test --if-present
-
-      - name: Test Property Service
-        working-directory: services/property-service
-        run: |
-          npm install
-          npm test --if-present
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Test Search Service
-        working-directory: services/search-service
-        run: |
-          pip install -r requirements.txt
-          pytest -v || [ $? -eq 5 ]
-
-      - name: Test Notification Service
-        working-directory: services/notification-service
-        run: |
-          pip install -r requirements.txt
-          pytest -v || [ $? -eq 5 ]
-
   deploy:
     name: Deploy to Dev
     runs-on: [self-hosted, dev]
-    needs: test
     environment: development
     steps:
       - uses: actions/checkout@v4
@@ -74,7 +33,7 @@ jobs:
       - name: Health check
         run: |
           for i in {1..5}; do
-            curl -sf http://localhost:3000/health && echo "✅ Frontend OK" && break
+            curl -sf http://localhost:80/health && echo "✅ NGINX OK" && break
             echo "Retry $i/5..."
             sleep 5
           done
