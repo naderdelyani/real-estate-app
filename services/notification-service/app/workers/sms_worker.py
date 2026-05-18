@@ -48,7 +48,7 @@ def _build_sms_body(payload: dict) -> str | None:
             f"'{payload.get('propertyTitle', 'the property')}' has been cancelled."
         )
     if event == "property.sold":
-        return f"[RealEstate] A property you saved has been marked as sold."
+        return "[RealEstate] A property you saved has been marked as sold."
 
     return None
 
