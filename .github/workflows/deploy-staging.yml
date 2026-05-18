@@ -4,6 +4,9 @@ on:
   push:
     branches: [develop]
 
+env:
+  PROXY: http://10.10.5.30:10809
+
 jobs:
   deploy:
     name: Deploy to Dev
@@ -18,17 +21,30 @@ jobs:
           git fetch origin develop
           git reset --hard origin/develop
 
-      - name: Start services
+      - name: Build & start services
         working-directory: /opt/real-estate-app
+        env:
+          DOCKER_BUILDKIT: 1
+          http_proxy: ${{ env.PROXY }}
+          https_proxy: ${{ env.PROXY }}
+          HTTP_PROXY: ${{ env.PROXY }}
+          HTTPS_PROXY: ${{ env.PROXY }}
+          no_proxy: localhost,127.0.0.1,10.10.0.0/16
         run: |
-          docker compose -f docker-compose.yml up -d --build
+          docker compose -f docker-compose.yml build \
+            --build-arg http_proxy=${{ env.PROXY }} \
+            --build-arg https_proxy=${{ env.PROXY }} \
+            --build-arg HTTP_PROXY=${{ env.PROXY }} \
+            --build-arg HTTPS_PROXY=${{ env.PROXY }} \
+            --build-arg no_proxy=localhost,127.0.0.1,10.10.0.0/16
+          docker compose -f docker-compose.yml up -d
 
       - name: Verify containers
         working-directory: /opt/real-estate-app
         run: |
           sleep 10
           docker compose ps
-          docker compose ps | grep -v "Exit" | grep -c "Up" || true
+          docker compose ps | grep -c "Up" || true
 
       - name: Health check
         run: |
