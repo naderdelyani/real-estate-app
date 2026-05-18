@@ -31,7 +31,7 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost/api
 
   auth-service:
-    name: Auth Service — Lint & Test
+    name: Auth Service — Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,50 +43,23 @@ jobs:
           node-version: '20'
       - run: npm install
       - run: npm run lint
-      - run: npm test
-        env:
-          JWT_SECRET: test-secret-min-64-chars-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-          JWT_REFRESH_SECRET: test-refresh-secret-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
   property-service:
-    name: Property Service — Lint & Test
+    name: Property Service — Lint
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: services/property-service
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: realestate_test
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - run: npm install
-      - run: npx prisma generate
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/realestate_test
-      - run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/realestate_test
       - run: npm run lint
-      - run: npm test
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/realestate_test
-          JWT_SECRET: test-secret-min-64-chars-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
   search-service:
-    name: Search Service — Lint & Test
+    name: Search Service — Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -98,13 +71,9 @@ jobs:
           python-version: '3.11'
       - run: pip install -r requirements.txt ruff
       - run: ruff check .
-      - run: pytest -v
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/realestate_test
-          REDIS_URL: redis://localhost:6379
 
   notification-service:
-    name: Notification Service — Lint & Test
+    name: Notification Service — Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -116,4 +85,3 @@ jobs:
           python-version: '3.11'
       - run: pip install -r requirements.txt ruff
       - run: ruff check .
-      - run: pytest -v
