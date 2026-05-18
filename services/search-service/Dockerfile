@@ -1,5 +1,10 @@
 # ─── Stage 1: Builder ─────────────────────────────────────────────────────────
 FROM python:3.11-slim AS builder
+ARG http_proxy
+ARG https_proxy
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG no_proxy
 
 WORKDIR /app
 
