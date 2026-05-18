@@ -15,21 +15,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: |
-            services/auth-service/package.json
-            services/property-service/package.json
 
       - name: Test Auth Service
         working-directory: services/auth-service
         run: |
-          npm ci
+          npm install
           npm test --if-present
 
       - name: Test Property Service
         working-directory: services/property-service
         run: |
-          npm ci
+          npm install
           npm test --if-present
 
       - name: Setup Python
@@ -41,13 +37,13 @@ jobs:
         working-directory: services/search-service
         run: |
           pip install -r requirements.txt
-          pytest --if-no-tests=warn
+          pytest -v || [ $? -eq 5 ]
 
       - name: Test Notification Service
         working-directory: services/notification-service
         run: |
           pip install -r requirements.txt
-          pytest --if-no-tests=warn
+          pytest -v || [ $? -eq 5 ]
 
   deploy:
     name: Deploy to Dev
