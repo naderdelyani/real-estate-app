@@ -1,0 +1,150 @@
+{
+  "nav": {
+    "home": "خانه",
+    "properties": "املاک",
+    "signIn": "ورود",
+    "register": "ثبت‌نام",
+    "toggleMenu": "باز/بستن منو"
+  },
+  "home": {
+    "hero": {
+      "title": "ملک رویایی خود را بیابید",
+      "subtitle": "هزاران آگهی تایید شده را جستجو کنید — آپارتمان، خانه، ویلا و فضاهای تجاری در سراسر کشور.",
+      "searchPlaceholder": "شهر، محله یا آدرس...",
+      "search": "جستجو"
+    },
+    "quickFilters": {
+      "forSale": "برای فروش",
+      "forRent": "برای اجاره",
+      "apartments": "آپارتمان‌ها",
+      "houses": "خانه‌ها",
+      "newBuilds": "ساخت جدید"
+    },
+    "stats": {
+      "activeListings": "آگهی‌های فعال",
+      "citiesCovered": "شهرهای تحت پوشش",
+      "happyClients": "مشتریان راضی",
+      "expertAgents": "مشاوران متخصص"
+    },
+    "latestListings": {
+      "title": "آخرین آگهی‌ها",
+      "subtitle": "ملک‌های تازه اضافه شده این هفته",
+      "viewAll": "مشاهده همه آگهی‌ها"
+    },
+    "features": {
+      "title": "چرا ما را انتخاب کنید",
+      "subtitle": "همه چیزی که برای یافتن، خرید یا اجاره ملک نیاز دارید",
+      "smartSearch": {
+        "title": "جستجوی هوشمند",
+        "description": "بر اساس قیمت، متراژ، موقعیت و ده‌ها معیار دیگر فیلتر کنید تا ملک مناسب را بیابید."
+      },
+      "interactiveMap": {
+        "title": "نقشه تعاملی",
+        "description": "آگهی‌ها را روی نقشه زنده مرور کنید و قبل از بازدید محله‌ها را کاوش کنید."
+      },
+      "marketInsights": {
+        "title": "تحلیل بازار",
+        "description": "به روندهای قیمت‌گذاری بلادرنگ و تحلیل‌های بازار برای هر منطقه دسترسی داشته باشید."
+      },
+      "verifiedListings": {
+        "title": "آگهی‌های تایید شده",
+        "description": "هر آگهی توسط تیم ما تایید می‌شود تا دقت و اعتبار آن را تضمین کنیم."
+      }
+    }
+  },
+  "properties": {
+    "pageTitle": "مرور املاک",
+    "pageDescription": "هزاران آگهی تایید شده را جستجو و فیلتر کنید.",
+    "searchPlaceholder": "جستجوی شهر، محله...",
+    "all": "همه",
+    "sale": "فروش",
+    "rent": "اجاره",
+    "minPrice": "حداقل قیمت",
+    "maxPrice": "حداکثر قیمت",
+    "bedrooms": "اتاق خواب",
+    "any": "هر تعداد",
+    "filter": "فیلتر",
+    "list": "فهرست",
+    "map": "نقشه",
+    "propertiesFound": "{count} ملک یافت شد"
+  },
+  "propertyDetail": {
+    "notFound": "ملک یافت نشد",
+    "forSale": "برای فروش",
+    "forRent": "برای اجاره",
+    "available": "موجود",
+    "sold": "فروخته شده",
+    "rented": "اجاره داده شده",
+    "beds": "{count} خواب",
+    "baths": "{count} حمام",
+    "area": "{value} متر مربع",
+    "description": "توضیحات",
+    "location": "موقعیت",
+    "contactAgent": "تماس با مشاور",
+    "bookViewing": "رزرو بازدید",
+    "sendMessage": "ارسال پیام",
+    "share": "اشتراک‌گذاری",
+    "save": "ذخیره",
+    "listedOn": "ثبت شده در {date}"
+  },
+  "admin": {
+    "pageTitle": "داشبورد مدیریت",
+    "title": "داشبورد",
+    "subtitle": "نمای کلی فعالیت‌های سکو",
+    "addProperty": "افزودن ملک",
+    "totalProperties": "مجموع ملک‌ها",
+    "totalUsers": "مجموع کاربران",
+    "totalViews": "مجموع بازدیدها",
+    "revenue": "درآمد (ماه جاری)",
+    "recentListings": "آگهی‌های اخیر",
+    "viewAll": "مشاهده همه",
+    "title_col": "عنوان",
+    "city": "شهر",
+    "price": "قیمت",
+    "type": "نوع",
+    "status": "وضعیت",
+    "date": "تاریخ",
+    "actions": "اقدامات",
+    "noListings": "هنوز آگهی‌ای وجود ندارد",
+    "edit": "ویرایش",
+    "delete": "حذف"
+  },
+  "propertyCard": {
+    "forSale": "برای فروش",
+    "forRent": "برای اجاره",
+    "sold": "فروخته شده",
+    "rented": "اجاره داده شده",
+    "available": "موجود",
+    "addToFavorites": "افزودن به علاقه‌مندی‌ها",
+    "removeFromFavorites": "حذف از علاقه‌مندی‌ها",
+    "noImage": "بدون تصویر",
+    "beds": "{count} خواب",
+    "baths": "{count} حمام"
+  },
+  "propertyList": {
+    "noResults": "ملکی یافت نشد",
+    "noResultsHint": "تنظیمات فیلتر جستجو را تغییر دهید"
+  },
+  "footer": {
+    "description": "پلتفرم مطمئن شما برای خرید، فروش و اجاره ملک در سراسر کشور.",
+    "company": "شرکت",
+    "product": "محصول",
+    "support": "پشتیبانی",
+    "about": "درباره ما",
+    "blog": "وبلاگ",
+    "careers": "مشاغل",
+    "browseProperties": "مرور املاک",
+    "pricing": "قیمت‌گذاری",
+    "apiDocs": "مستندات API",
+    "faq": "سوالات متداول",
+    "contact": "تماس",
+    "privacyPolicy": "حریم خصوصی",
+    "allRightsReserved": "تمامی حقوق محفوظ است.",
+    "builtWith": "ساخته شده با Next.js، Node.js و FastAPI"
+  },
+  "metadata": {
+    "title": "اپلیکیشن املاک",
+    "description": "ملک رویایی خود را پیدا کنید — خرید، فروش یا اجاره با آسانی.",
+    "siteName": "اپلیکیشن املاک"
+  }
+}

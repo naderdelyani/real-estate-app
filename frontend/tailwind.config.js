@@ -30,7 +30,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        vazirmatn: ['var(--font-vazirmatn)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: '0.625rem',

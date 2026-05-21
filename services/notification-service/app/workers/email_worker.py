@@ -1,6 +1,7 @@
 """
 Email worker — subscribes to the 'notifications.email' RabbitMQ queue
 and dispatches transactional emails via SMTP using aiosmtplib.
+Supports English and Farsi (Persian) email templates.
 """
 
 import json
@@ -22,16 +23,10 @@ SMTP_USER   = os.getenv("SMTP_USER",     "")
 SMTP_PASS   = os.getenv("SMTP_PASSWORD", "")
 SMTP_FROM   = os.getenv("SMTP_FROM",     "noreply@realestate.app")
 
+APP_URL = os.getenv("NEXT_PUBLIC_APP_URL", "http://localhost:3000")
+
 
 async def send_email(to: str, subject: str, html_body: str) -> None:
-    """
-    Sends a single HTML email via STARTTLS.
-
-    Args:
-        to:        Recipient email address.
-        subject:   Email subject line.
-        html_body: HTML content of the email.
-    """
     message = MIMEMultipart("alternative")
     message["From"]    = SMTP_FROM
     message["To"]      = to
@@ -49,54 +44,86 @@ async def send_email(to: str, subject: str, html_body: str) -> None:
     logger.info("Email sent to %s | subject: %s", to, subject)
 
 
-def _render_appointment_email(payload: dict) -> tuple[str, str]:
-    """Builds the subject and HTML body for an appointment confirmation email."""
-    subject = "Your viewing appointment is confirmed"
-    html = f"""
-    <html><body style="font-family:Arial,sans-serif;color:#333">
-      <h2>Appointment Confirmed</h2>
-      <p>Your viewing for property <strong>{payload.get('propertyTitle','')}</strong>
-         has been scheduled for <strong>{payload.get('scheduledAt','')}</strong>.</p>
-      <p>If you need to reschedule, please contact us.</p>
-      <br/><p>— The Real Estate Team</p>
-    </body></html>
-    """
+def _render_appointment_email(payload: dict, locale: str) -> tuple[str, str]:
+    title       = payload.get("propertyTitle", "")
+    scheduled   = payload.get("scheduledAt", "")
+
+    if locale == "fa":
+        subject = "قرار بازدید شما تایید شد"
+        html = f"""
+        <html dir="rtl">
+        <body style="font-family:'Vazirmatn',Arial,sans-serif;color:#333;direction:rtl;text-align:right">
+          <h2>قرار بازدید تایید شد</h2>
+          <p>بازدید از ملک <strong>{title}</strong> برای <strong>{scheduled}</strong> زمان‌بندی شده است.</p>
+          <p>در صورت نیاز به تغییر زمان، با ما تماس بگیرید.</p>
+          <br/><p>— تیم اپلیکیشن املاک</p>
+        </body></html>
+        """
+    else:
+        subject = "Your viewing appointment is confirmed"
+        html = f"""
+        <html><body style="font-family:Arial,sans-serif;color:#333">
+          <h2>Appointment Confirmed</h2>
+          <p>Your viewing for property <strong>{title}</strong>
+             has been scheduled for <strong>{scheduled}</strong>.</p>
+          <p>If you need to reschedule, please contact us.</p>
+          <br/><p>— The Real Estate Team</p>
+        </body></html>
+        """
     return subject, html
 
 
-def _render_welcome_email(payload: dict) -> tuple[str, str]:
-    """Builds the subject and HTML body for a welcome email after registration."""
-    subject = f"Welcome to Real Estate App, {payload.get('name', '')}!"
-    html = f"""
-    <html><body style="font-family:Arial,sans-serif;color:#333">
-      <h2>Welcome, {payload.get('name', '')}!</h2>
-      <p>Your account has been created. Start browsing thousands of verified listings today.</p>
-      <a href="{os.getenv('NEXT_PUBLIC_APP_URL','http://localhost:3000')}/properties"
-         style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none">
-        Browse Properties
-      </a>
-      <br/><br/><p>— The Real Estate Team</p>
-    </body></html>
-    """
+def _render_welcome_email(payload: dict, locale: str) -> tuple[str, str]:
+    name = payload.get("name", "")
+
+    if locale == "fa":
+        subject = f"به اپلیکیشن املاک خوش آمدید، {name}!"
+        html = f"""
+        <html dir="rtl">
+        <body style="font-family:'Vazirmatn',Arial,sans-serif;color:#333;direction:rtl;text-align:right">
+          <h2>خوش آمدید، {name}!</h2>
+          <p>حساب کاربری شما ایجاد شد. همین الان هزاران آگهی تایید شده را مرور کنید.</p>
+          <a href="{APP_URL}/fa/properties"
+             style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block">
+            مرور املاک
+          </a>
+          <br/><br/><p>— تیم اپلیکیشن املاک</p>
+        </body></html>
+        """
+    else:
+        subject = f"Welcome to Real Estate App, {name}!"
+        html = f"""
+        <html><body style="font-family:Arial,sans-serif;color:#333">
+          <h2>Welcome, {name}!</h2>
+          <p>Your account has been created. Start browsing thousands of verified listings today.</p>
+          <a href="{APP_URL}/en/properties"
+             style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block">
+            Browse Properties
+          </a>
+          <br/><br/><p>— The Real Estate Team</p>
+        </body></html>
+        """
     return subject, html
 
 
 async def process_email_message(message: aio_pika.IncomingMessage) -> None:
-    """Deserializes a RabbitMQ message and dispatches the appropriate email."""
     async with message.process():
         try:
             payload  = json.loads(message.body.decode())
             event    = payload.get("event")
             to_email = payload.get("email")
+            locale   = payload.get("locale", "en")
+            if locale not in ("en", "fa"):
+                locale = "en"
 
             if not to_email:
                 logger.warning("Email message missing 'email' field, skipping")
                 return
 
             if event == "appointment.created":
-                subject, html = _render_appointment_email(payload)
+                subject, html = _render_appointment_email(payload, locale)
             elif event == "user.registered":
-                subject, html = _render_welcome_email(payload)
+                subject, html = _render_welcome_email(payload, locale)
             else:
                 logger.debug("Unhandled email event: %s", event)
                 return
@@ -108,7 +135,6 @@ async def process_email_message(message: aio_pika.IncomingMessage) -> None:
 
 
 async def start_email_consumer(connection: aio_pika.RobustConnection) -> None:
-    """Declares the email queue and begins consuming messages."""
     channel = await connection.channel()
     await channel.set_qos(prefetch_count=5)
 

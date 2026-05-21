@@ -1,0 +1,150 @@
+{
+  "nav": {
+    "home": "Home",
+    "properties": "Properties",
+    "signIn": "Sign in",
+    "register": "Register",
+    "toggleMenu": "Toggle menu"
+  },
+  "home": {
+    "hero": {
+      "title": "Find Your Dream Property",
+      "subtitle": "Search thousands of verified listings — apartments, houses, villas, and commercial spaces across the country.",
+      "searchPlaceholder": "City, neighborhood, or address…",
+      "search": "Search"
+    },
+    "quickFilters": {
+      "forSale": "For Sale",
+      "forRent": "For Rent",
+      "apartments": "Apartments",
+      "houses": "Houses",
+      "newBuilds": "New Builds"
+    },
+    "stats": {
+      "activeListings": "Active Listings",
+      "citiesCovered": "Cities Covered",
+      "happyClients": "Happy Clients",
+      "expertAgents": "Expert Agents"
+    },
+    "latestListings": {
+      "title": "Latest Listings",
+      "subtitle": "Fresh properties added this week",
+      "viewAll": "View all listings"
+    },
+    "features": {
+      "title": "Why Choose Us",
+      "subtitle": "Everything you need to find, buy, or rent a property",
+      "smartSearch": {
+        "title": "Smart Search",
+        "description": "Filter by price, area, location, and dozens of other criteria to find the perfect property."
+      },
+      "interactiveMap": {
+        "title": "Interactive Map",
+        "description": "Browse listings on a live map and explore neighborhoods before you visit."
+      },
+      "marketInsights": {
+        "title": "Market Insights",
+        "description": "Access real-time pricing trends and market analytics for any area."
+      },
+      "verifiedListings": {
+        "title": "Verified Listings",
+        "description": "Every listing is verified by our team to ensure accuracy and legitimacy."
+      }
+    }
+  },
+  "properties": {
+    "pageTitle": "Browse Properties",
+    "pageDescription": "Search and filter thousands of verified real estate listings.",
+    "searchPlaceholder": "Search city, neighborhood…",
+    "all": "All",
+    "sale": "Sale",
+    "rent": "Rent",
+    "minPrice": "Min price",
+    "maxPrice": "Max price",
+    "bedrooms": "Bedrooms",
+    "any": "Any",
+    "filter": "Filter",
+    "list": "List",
+    "map": "Map",
+    "propertiesFound": "{count, plural, one {# property found} other {# properties found}}"
+  },
+  "propertyDetail": {
+    "notFound": "Property Not Found",
+    "forSale": "For Sale",
+    "forRent": "For Rent",
+    "available": "Available",
+    "sold": "Sold",
+    "rented": "Rented",
+    "beds": "{count} Beds",
+    "baths": "{count} Baths",
+    "area": "{value} m²",
+    "description": "Description",
+    "location": "Location",
+    "contactAgent": "Contact Agent",
+    "bookViewing": "Book a Viewing",
+    "sendMessage": "Send Message",
+    "share": "Share",
+    "save": "Save",
+    "listedOn": "Listed on {date}"
+  },
+  "admin": {
+    "pageTitle": "Admin Dashboard",
+    "title": "Dashboard",
+    "subtitle": "Overview of platform activity",
+    "addProperty": "Add Property",
+    "totalProperties": "Total Properties",
+    "totalUsers": "Total Users",
+    "totalViews": "Total Views",
+    "revenue": "Revenue (MTD)",
+    "recentListings": "Recent Listings",
+    "viewAll": "View all",
+    "title_col": "Title",
+    "city": "City",
+    "price": "Price",
+    "type": "Type",
+    "status": "Status",
+    "date": "Date",
+    "actions": "Actions",
+    "noListings": "No listings yet",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "propertyCard": {
+    "forSale": "For Sale",
+    "forRent": "For Rent",
+    "sold": "Sold",
+    "rented": "Rented",
+    "available": "Available",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "noImage": "No image",
+    "beds": "{count} bed",
+    "baths": "{count} bath"
+  },
+  "propertyList": {
+    "noResults": "No properties found",
+    "noResultsHint": "Try adjusting your search filters"
+  },
+  "footer": {
+    "description": "Your trusted platform for buying, selling, and renting properties across the country.",
+    "company": "Company",
+    "product": "Product",
+    "support": "Support",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "browseProperties": "Browse Properties",
+    "pricing": "Pricing",
+    "apiDocs": "API Docs",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "privacyPolicy": "Privacy Policy",
+    "allRightsReserved": "All rights reserved.",
+    "builtWith": "Built with Next.js, Node.js & FastAPI"
+  },
+  "metadata": {
+    "title": "Real Estate App",
+    "description": "Find your dream property — buy, sell, or rent with ease.",
+    "siteName": "Real Estate App"
+  }
+}

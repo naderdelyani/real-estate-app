@@ -8,20 +8,63 @@ const { publishEvent }      = require('../utils/rabbitmq.utils');
 
 const prisma = new PrismaClient();
 
-/** Sends a 422 with field-level errors from express-validator. */
+const MESSAGES = {
+  en: {
+    failedToFetchProperties: 'Failed to fetch properties',
+    propertyNotFound:        'Property not found',
+    failedToFetchProperty:   'Failed to fetch property',
+    failedToCreateProperty:  'Failed to create property',
+    forbidden:               'Forbidden',
+    failedToUpdateProperty:  'Failed to update property',
+    propertyDeleted:         'Property deleted',
+    failedToDeleteProperty:  'Failed to delete property',
+    noImagesProvided:        'No images provided',
+    failedToUploadImages:    'Failed to upload images',
+    imageNotFound:           'Image not found',
+    imageDeleted:            'Image deleted',
+    failedToDeleteImage:     'Failed to delete image',
+    failedToToggleFavorite:  'Failed to toggle favorite',
+    failedToCreateAppointment: 'Failed to create appointment',
+    failedToFetchStats:      'Failed to fetch stats',
+  },
+  fa: {
+    failedToFetchProperties: 'دریافت ملک‌ها ناموفق بود',
+    propertyNotFound:        'ملک یافت نشد',
+    failedToFetchProperty:   'دریافت ملک ناموفق بود',
+    failedToCreateProperty:  'ایجاد ملک ناموفق بود',
+    forbidden:               'دسترسی غیرمجاز',
+    failedToUpdateProperty:  'به‌روزرسانی ملک ناموفق بود',
+    propertyDeleted:         'ملک حذف شد',
+    failedToDeleteProperty:  'حذف ملک ناموفق بود',
+    noImagesProvided:        'تصویری ارائه نشده است',
+    failedToUploadImages:    'آپلود تصاویر ناموفق بود',
+    imageNotFound:           'تصویر یافت نشد',
+    imageDeleted:            'تصویر حذف شد',
+    failedToDeleteImage:     'حذف تصویر ناموفق بود',
+    failedToToggleFavorite:  'تغییر وضعیت علاقه‌مندی ناموفق بود',
+    failedToCreateAppointment: 'ایجاد قرار ملاقات ناموفق بود',
+    failedToFetchStats:      'دریافت آمار ناموفق بود',
+  },
+};
+
+function getLocale(req) {
+  const lang = req.headers['accept-language'] || 'en';
+  return lang.startsWith('fa') ? 'fa' : 'en';
+}
+
+function msg(req, key) {
+  const locale = getLocale(req);
+  return (MESSAGES[locale] || MESSAGES.en)[key] || MESSAGES.en[key];
+}
+
 function sendValidationError(res, errors) {
   return res.status(422).json({ success: false, errors: errors.array() });
 }
 
-/** Builds a plain-object property response, stripping internal fields. */
 function formatProperty(p) {
   return { ...p };
 }
 
-/**
- * GET /api/properties
- * Returns a paginated list of available properties.
- */
 async function listProperties(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return sendValidationError(res, errors);
@@ -51,14 +94,10 @@ async function listProperties(req, res) {
     });
   } catch (err) {
     console.error('[property] listProperties error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to fetch properties' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToFetchProperties') });
   }
 }
 
-/**
- * GET /api/properties/:id
- * Returns a single property with all images and agent info.
- */
 async function getProperty(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return sendValidationError(res, errors);
@@ -68,21 +107,17 @@ async function getProperty(req, res) {
       where:   { id: req.params.id },
       include: { images: true, agent: { select: { id: true, name: true, phone: true, avatar: true } } },
     });
-    if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
+    if (!property) return res.status(404).json({ success: false, message: msg(req, 'propertyNotFound') });
 
     await prisma.property.update({ where: { id: property.id }, data: { viewCount: { increment: 1 } } });
 
     return res.json({ success: true, data: formatProperty(property) });
   } catch (err) {
     console.error('[property] getProperty error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to fetch property' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToFetchProperty') });
   }
 }
 
-/**
- * POST /api/properties
- * Creates a new property listing for the authenticated user.
- */
 async function createProperty(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return sendValidationError(res, errors);
@@ -94,12 +129,12 @@ async function createProperty(req, res) {
       data: {
         id: uuidv4(),
         title, description,
-        price: parseFloat(price),
+        price:     parseFloat(price),
         type,
-        status: 'available',
-        bedrooms: parseInt(bedrooms, 10),
+        status:    'available',
+        bedrooms:  parseInt(bedrooms, 10),
         bathrooms: parseInt(bathrooms, 10),
-        area: parseFloat(area),
+        area:      parseFloat(area),
         address, city,
         lat: parseFloat(lat),
         lng: parseFloat(lng),
@@ -112,23 +147,19 @@ async function createProperty(req, res) {
     return res.status(201).json({ success: true, data: property });
   } catch (err) {
     console.error('[property] createProperty error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to create property' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToCreateProperty') });
   }
 }
 
-/**
- * PUT /api/properties/:id
- * Updates a property — only the owning agent or an admin may do this.
- */
 async function updateProperty(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return sendValidationError(res, errors);
 
   try {
     const existing = await prisma.property.findUnique({ where: { id: req.params.id } });
-    if (!existing) return res.status(404).json({ success: false, message: 'Property not found' });
+    if (!existing) return res.status(404).json({ success: false, message: msg(req, 'propertyNotFound') });
     if (existing.agentId !== req.user.sub && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+      return res.status(403).json({ success: false, message: msg(req, 'forbidden') });
     }
 
     const { title, description, price, type, bedrooms, bathrooms, area, address, city, lat, lng, status } = req.body;
@@ -141,44 +172,36 @@ async function updateProperty(req, res) {
     return res.json({ success: true, data: updated });
   } catch (err) {
     console.error('[property] updateProperty error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to update property' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToUpdateProperty') });
   }
 }
 
-/**
- * DELETE /api/properties/:id
- * Soft-deletes a property by setting its status to 'deleted'.
- */
 async function deleteProperty(req, res) {
   try {
     const existing = await prisma.property.findUnique({ where: { id: req.params.id } });
-    if (!existing) return res.status(404).json({ success: false, message: 'Property not found' });
+    if (!existing) return res.status(404).json({ success: false, message: msg(req, 'propertyNotFound') });
     if (existing.agentId !== req.user.sub && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+      return res.status(403).json({ success: false, message: msg(req, 'forbidden') });
     }
 
     await prisma.property.update({ where: { id: req.params.id }, data: { status: 'deleted' } });
-    return res.json({ success: true, message: 'Property deleted' });
+    return res.json({ success: true, message: msg(req, 'propertyDeleted') });
   } catch (err) {
     console.error('[property] deleteProperty error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to delete property' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToDeleteProperty') });
   }
 }
 
-/**
- * POST /api/properties/:id/images
- * Uploads one or more images to MinIO and stores metadata in the DB.
- */
 async function uploadImages(req, res) {
   if (!req.files?.length) {
-    return res.status(400).json({ success: false, message: 'No images provided' });
+    return res.status(400).json({ success: false, message: msg(req, 'noImagesProvided') });
   }
 
   try {
     const property = await prisma.property.findUnique({ where: { id: req.params.id } });
-    if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
+    if (!property) return res.status(404).json({ success: false, message: msg(req, 'propertyNotFound') });
     if (property.agentId !== req.user.sub && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+      return res.status(403).json({ success: false, message: msg(req, 'forbidden') });
     }
 
     const saved = await Promise.all(
@@ -195,34 +218,26 @@ async function uploadImages(req, res) {
     return res.status(201).json({ success: true, data: saved });
   } catch (err) {
     console.error('[property] uploadImages error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to upload images' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToUploadImages') });
   }
 }
 
-/**
- * DELETE /api/properties/:id/images/:imageId
- * Removes an image from MinIO and the database.
- */
 async function deleteImage(req, res) {
   try {
     const image = await prisma.image.findFirst({ where: { id: req.params.imageId, propertyId: req.params.id } });
-    if (!image) return res.status(404).json({ success: false, message: 'Image not found' });
+    if (!image) return res.status(404).json({ success: false, message: msg(req, 'imageNotFound') });
 
     const objectName = image.url.split(`/${BUCKET}/`)[1];
     if (objectName) await minioClient.removeObject(BUCKET, objectName).catch(() => {});
     await prisma.image.delete({ where: { id: image.id } });
 
-    return res.json({ success: true, message: 'Image deleted' });
+    return res.json({ success: true, message: msg(req, 'imageDeleted') });
   } catch (err) {
     console.error('[property] deleteImage error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to delete image' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToDeleteImage') });
   }
 }
 
-/**
- * POST /api/properties/:id/favorites
- * Toggles the authenticated user's favorite status on a property.
- */
 async function toggleFavorite(req, res) {
   try {
     const existing = await prisma.favorite.findUnique({
@@ -238,25 +253,21 @@ async function toggleFavorite(req, res) {
     return res.status(201).json({ success: true, favorited: true });
   } catch (err) {
     console.error('[property] toggleFavorite error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to toggle favorite' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToToggleFavorite') });
   }
 }
 
-/**
- * POST /api/properties/:id/appointments
- * Books a property viewing appointment for the authenticated user.
- */
 async function createAppointment(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return sendValidationError(res, errors);
 
   try {
     const property = await prisma.property.findUnique({ where: { id: req.params.id } });
-    if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
+    if (!property) return res.status(404).json({ success: false, message: msg(req, 'propertyNotFound') });
 
     const appointment = await prisma.appointment.create({
       data: {
-        id: uuidv4(),
+        id:          uuidv4(),
         userId:      req.user.sub,
         propertyId:  req.params.id,
         scheduledAt: new Date(req.body.scheduledAt),
@@ -270,19 +281,16 @@ async function createAppointment(req, res) {
       userId:        req.user.sub,
       propertyId:    req.params.id,
       scheduledAt:   req.body.scheduledAt,
+      locale:        req.headers['accept-language']?.startsWith('fa') ? 'fa' : 'en',
     }).catch(() => {});
 
     return res.status(201).json({ success: true, data: appointment });
   } catch (err) {
     console.error('[property] createAppointment error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to create appointment' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToCreateAppointment') });
   }
 }
 
-/**
- * GET /api/properties/admin/stats
- * Returns platform-wide dashboard statistics (admin only).
- */
 async function getAdminStats(req, res) {
   try {
     const [totalProperties, totalUsers, recentListings] = await prisma.$transaction([
@@ -310,7 +318,7 @@ async function getAdminStats(req, res) {
     });
   } catch (err) {
     console.error('[property] getAdminStats error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to fetch stats' });
+    return res.status(500).json({ success: false, message: msg(req, 'failedToFetchStats') });
   }
 }
 

@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname } from '@/i18n/navigation';
 import { Home, Building2, Menu, X, LogIn, UserPlus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Button } from '@/components/ui/Button';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
-const NAV_LINKS = [
-  { href: '/',           label: 'Home',       icon: Home },
-  { href: '/properties', label: 'Properties', icon: Building2 },
-];
-
-/** Top navigation bar with responsive mobile drawer. */
 export function Navbar() {
+  const t = useTranslations('nav');
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const NAV_LINKS = [
+    { href: '/' as const,           label: t('home'),       icon: Home },
+    { href: '/properties' as const, label: t('properties'), icon: Building2 },
+  ];
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
@@ -44,18 +45,19 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Desktop Auth Buttons */}
+        {/* Desktop Auth + Language Switcher */}
         <div className="hidden md:flex items-center gap-2">
+          <LanguageSwitcher />
           <Link href="/auth/login">
             <Button variant="ghost" size="sm">
-              <LogIn className="h-4 w-4 mr-1.5" />
-              Sign in
+              <LogIn className="h-4 w-4 me-1.5" />
+              {t('signIn')}
             </Button>
           </Link>
           <Link href="/auth/register">
             <Button size="sm">
-              <UserPlus className="h-4 w-4 mr-1.5" />
-              Register
+              <UserPlus className="h-4 w-4 me-1.5" />
+              {t('register')}
             </Button>
           </Link>
         </div>
@@ -64,7 +66,7 @@ export function Navbar() {
         <button
           onClick={() => setMenuOpen((v) => !v)}
           className="md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors"
-          aria-label="Toggle menu"
+          aria-label={t('toggleMenu')}
         >
           {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -88,8 +90,9 @@ export function Navbar() {
             </Link>
           ))}
           <div className="pt-2 flex flex-col gap-2">
-            <Link href="/auth/login"    onClick={() => setMenuOpen(false)}><Button variant="outline" className="w-full">Sign in</Button></Link>
-            <Link href="/auth/register" onClick={() => setMenuOpen(false)}><Button className="w-full">Register</Button></Link>
+            <LanguageSwitcher />
+            <Link href="/auth/login"    onClick={() => setMenuOpen(false)}><Button variant="outline" className="w-full">{t('signIn')}</Button></Link>
+            <Link href="/auth/register" onClick={() => setMenuOpen(false)}><Button className="w-full">{t('register')}</Button></Link>
           </div>
         </div>
       )}
